@@ -65,14 +65,20 @@ public class WikiCrawler {
 		}
 		if (testing == true) {
 			Elements paras = wf.readWikipedia(url);
-			System.out.println("**** reading url: " + url);
+			// System.out.println("**** reading url: " + url);
 			/* index page no matter whether it has been indexed before */
 			index.indexPage(url, paras);
 			queueInternalLinks(paras);
 		} else {  // testing == false
-			Elements paras = wf.fetchWikipedia(url);
-			System.out.println("**** fetching url: " + url);
 			/* only index page if not yet indexed */
+			if (index.isIndexed(url)) {
+				return null;
+			} else {  // url has not yet been indexed
+				Elements paras = wf.fetchWikipedia(url);
+				System.out.println("**** fetching url: " + url);
+				index.indexPage(url, paras);
+				queueInternalLinks(paras);
+			}
 		}
 		/* return URL of page just indexed */
 		return url;
@@ -91,14 +97,9 @@ public class WikiCrawler {
 			for (Node node: iter) {
 				// process elements to find links
 				if (node instanceof Element) {
-					// Element link = processElement((Element) node);
 	        processElement((Element) node);
-	        // if (link != null) {
-					// 	return link;
-					// }
 				}
 			}
-			// return null;
 		}
 	}
 
@@ -110,11 +111,9 @@ public class WikiCrawler {
 	 */
 	private void processElement(Element elt) {
 		if (validLink(elt)) {
-			System.out.println("offering link: " + "https://en.wikipedia.org" + elt.attr("href"));
+			// System.out.println("offering link: " + "https://en.wikipedia.org" + elt.attr("href"));
 			queue.offer("https://en.wikipedia.org" + elt.attr("href"));
-			// return elt;
 		}
-		// return null;
 	}
 
 	/**
@@ -125,12 +124,12 @@ public class WikiCrawler {
 		if (!elt.tagName().equals("a")) {
 			return false;
 		}
-		System.out.println(elt.tagName());
+		// System.out.println(elt.tagName());
 		// an external link
 		if (!startsWith(elt, "/wiki/")) {
 			return false;
 		}
-		System.out.println("href: " + elt.attr("href"));
+		// System.out.println("href: " + elt.attr("href"));
 		return true;
 	}
 
